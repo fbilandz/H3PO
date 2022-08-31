@@ -12,8 +12,14 @@ pip install jupyter
 git clone git@github.com:mroguljic/H3PO.git
 ```
 
-# Running the notebooks
+# Running the notebooks from a server
+On server
 ```
- cd H3PO
- jupyter notebook --no-browser --port=8889
+cd H3PO
+jupyter notebook --no-browser --port=8889 #Output shows the token which may be necessary to provide in browser on first connection
+```
+On local
+```
+ssh -N -f -L localhost:8888:localhost:8889 USER@SERVER
+http://localhost:8888 #type this in a browser
 ```
