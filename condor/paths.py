@@ -1,7 +1,7 @@
 #Location of the main H3PO directory
 H3_DIR              = "/users/mrogul/Work/H3/H3PO"
 #Where to store skimmed NanoAODs
-SKIM_DIR            = "/STORE/matej/H3_skims//"
+SKIM_DIR            = "/STORE/matej/H3_skims/"
 #Where to store condor logs for skimming jobs
 SKIM_JOB_DIR        = H3_DIR+"/condor/skim_jobs"
 #Location of the CMSSW

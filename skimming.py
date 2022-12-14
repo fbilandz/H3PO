@@ -6,6 +6,34 @@ import ROOT as r
 from optparse import OptionParser
 import os
 import time
+from condor.paths import H3_DIR
+from coffea.lumi_tools import LumiMask
+
+def isMC(events):
+    if events['run'][0] < 100000:
+        return True
+    else:
+        return False
+
+def getYearFromRun(events):
+    runNo = events['run'][0]
+    if(runNo < 294927):#Run in 2017 golden json name
+        return 2016
+    elif(runNo < 314472):#Run in 2018 golden json name
+        return 2017
+    else:
+        return 2018
+
+def getGoldenJson(dataYear):
+    if(dataYear==2016):
+        jsonPath = H3_DIR+"/data/LumiJson/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt"
+    elif(dataYear==2017):
+        jsonPath = H3_DIR+"/data/LumiJson/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt"
+    else:
+        jsonPath = H3_DIR+"/data/LumiJson/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
+    
+    return jsonPath        
+
 
 def is_rootcompat(a):
     """Is it a flat or 1-d jagged array?"""
@@ -36,9 +64,17 @@ def uproot_writeable(events):
 def skim(inputFile,outputFile,eventsToRead=None):
     print("Skimming {0}".format(inputFile))
     events = NanoEventsFactory.from_root(inputFile,schemaclass=NanoAODSchema,entry_stop=eventsToRead).events()
+    mcFlag = isMC(events)
     ptCut  = 200
     msdCut = 50
     etaCut = 2.5
+    print("MC flag is {0}".format(mcFlag))
+
+    if not mcFlag:
+        dataYear    = getYearFromRun(events)
+        goldenJson  = getGoldenJson(dataYear)
+        lumiMask    = LumiMask(goldenJson)(events['run'], events['luminosityBlock'])
+
 
     ptMask       = events.FatJet.pt>ptCut
     msdMask      = events.FatJet.msoftdrop>msdCut
@@ -47,7 +83,11 @@ def skim(inputFile,outputFile,eventsToRead=None):
     #We require at least two FatJets satisfying pt, eta and msd requirements
     #This allows for 3+0 or 2+1 (AK8Jet+AK4Jet topologies)
     skimmingMask = ak.sum(ptMask & msdMask & etaMask, axis=1)>1
-    skimmed      = events[skimmingMask]
+    if mcFlag:
+        skimmed      = events[skimmingMask]
+    else:
+        skimmed      = events[skimmingMask & lumiMask]
+    
     with uproot.recreate(outputFile) as fout:
         fout["Events"] = uproot_writeable(skimmed)
 
