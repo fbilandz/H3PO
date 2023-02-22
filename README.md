@@ -12,6 +12,15 @@ pip install --upgrade pip
 pip install coffea #Some errors reported here, but coffea is installed
 git clone git@github.com:bchitrod/H3PO.git
 ```
+Setup environment
+```
+source /cvmfs/cms.cern.ch/cmsset_default.sh
+cd CMSSW_12_3_0
+cmsenv
+cd ..
+source H3env/bin/activate
+cd H3PO
+```
 
 # Running the notebooks from a server
 install
