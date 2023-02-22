@@ -66,7 +66,8 @@ def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None):
     plt.clf()
 
 
-fname   = "/eos/user/b/bchitrod/HHH/NANOAOD/TRSM_XToHY_6b_M3_2000_M2_1100_NANOAOD.root"
+#fname   = "/eos/user/b/bchitrod/HHH/NANOAOD/TRSM_XToHY_6b_M3_2000_M2_1100_NANOAOD.root" #(on lxplus)
+fname = "/STORE/ferencek/TRSM_XToHY_6b/2017/13TeV/NANOAOD/TRSM_XToHY_6b_M3_2000_M2_1100_NANOAOD.root" 
 
 MX = [400,800,1200,1600,2000,2400,2800,3200,3600,4000]
 MY = [260,300,700,1100,1500,1900,2300,2700,3100,3500,3900]
