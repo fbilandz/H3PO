@@ -26,11 +26,11 @@ def getYearFromRun(events):
 
 def getGoldenJson(dataYear):
     if(dataYear==2016):
-        jsonPath = H3_DIR+"/data/LumiJson/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt"
+        jsonPath = H3_DIR+"/../data/LumiJson/Cert_271036-284044_13TeV_Legacy2016_Collisions16_JSON.txt"
     elif(dataYear==2017):
-        jsonPath = H3_DIR+"/data/LumiJson/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt"
+        jsonPath = H3_DIR+"/../data/LumiJson/Cert_294927-306462_13TeV_UL2017_Collisions17_GoldenJSON.txt"
     else:
-        jsonPath = H3_DIR+"/data/LumiJson/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
+        jsonPath = H3_DIR+"/../data/LumiJson/Cert_314472-325175_13TeV_Legacy2018_Collisions18_JSON.txt"
     
     return jsonPath        
 
@@ -117,7 +117,7 @@ parser.add_option('-o', '--odir', metavar='ODIR', type='string', action='store',
                 default   =   '',
                 dest      =   'outputDir',
                 help      =   'Output directory path.')
-    
+
 (options, args) = parser.parse_args()
 start_time      = time.time()
 
@@ -151,5 +151,5 @@ else:
     copyRunsTree(fileName,"{0}/{1}".format(odir,fileName))
     print("Removing local file {0}".format(fileName))
     os.system("rm {0}".format(fileName))
-    
+
 print ('%s sec'%(time.time()-start_time))
