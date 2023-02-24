@@ -52,7 +52,7 @@ def semiboosted(fname,oFile,processLabel="signal",eventsToRead=None):
     good_fatjets = fatjets[(fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut) & (fatjets.msoftdrop>=mass_cut[0]) & (fatjets.msoftdrop<=mass_cut[1])]
     pre_semiboosted_events = events[ak.num(good_fatjets, axis=1) == 2]
     #Btag cut for fatjets applied after pre selection
-    btag_semiboosted = pre_semiboosted_events.FatJyet[HbbvsQCD(pre_semiboosted_events.FatJet)>=pNet_cut]
+    btag_semiboosted = pre_semiboosted_events.FatJet[HbbvsQCD(pre_semiboosted_events.FatJet)>=pNet_cut]
     btag_semiboosted_events = pre_semiboosted_events[ak.num(btag_semiboosted, axis=1) == 2]
     
     #Resolved jet cuts
