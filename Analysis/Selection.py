@@ -70,7 +70,7 @@ def semiboosted(fname,oFile,processLabel="signal",eventsToRead=None):
     good_semiboosted_events = btag_semiboosted_events[ak.num(good_pre_jets)>1]
     
     #veto jets overlaping with fatjet
-    good_pairs = good_semiboosted_events.Jet.nearest(good_semiboosted_events.Fatjet).delta_r(good_semiboosted_events.Jet)>0.8
+    good_pairs = good_semiboosted_events.Jet.nearest(good_semiboosted_events.FatJet).delta_r(good_semiboosted_events.Jet)>0.8
     good_paired_jets = good_semiboosted_events.Jet[good_pairs]
     
     #make sure there are atleast 2 selected resolved jets in an event
