@@ -33,7 +33,7 @@ def boosted(fname,oFile,processLabel="signal",eventsToRead=None):
     good_fatjets = fatjets[(fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut) & (fatjets.msoftdrop>=mass_cut[0]) & (fatjets.msoftdrop<=mass_cut[1])]
     pre_boosted_events = events[ak.num(good_fatjets, axis=1)> 2]
     #Btag cut applied at the end
-    btag_boosted = pre_boosted_events.Fatjet[HbbvsQCD(pre_boosted_events.Fatjet)>=pNet_cut]
+    btag_boosted = pre_boosted_events.FatJet[HbbvsQCD(pre_boosted_events.FatJet)>=pNet_cut]
     btag_boosted_events = pre_boosted_events[ak.num(btag_boosted, axis=1)> 2]
 
     return btag_boosted_events
@@ -52,7 +52,7 @@ def semiboosted(fname,oFile,processLabel="signal",eventsToRead=None):
     good_fatjets = fatjets[(fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut) & (fatjets.msoftdrop>=mass_cut[0]) & (fatjets.msoftdrop<=mass_cut[1])]
     pre_semiboosted_events = events[ak.num(good_fatjets, axis=1) == 2]
     #Btag cut for fatjets applied after pre selection
-    btag_semiboosted = pre_semiboosted_events.Fatjet[HbbvsQCD(pre_semiboosted_events.Fatjet)>=pNet_cut]
+    btag_semiboosted = pre_semiboosted_events.FatJyet[HbbvsQCD(pre_semiboosted_events.FatJet)>=pNet_cut]
     btag_semiboosted_events = pre_semiboosted_events[ak.num(btag_semiboosted, axis=1) == 2]
     
     #Resolved jet cuts
