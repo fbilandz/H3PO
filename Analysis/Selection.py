@@ -20,15 +20,19 @@ def HbbvsQCD(fatjet):
     return score
 
 def boosted(fname,oFile,processLabel="signal",eventsToRead=None):	
-    events = NanoEventsFactory.from_root(fname,schemaclass=NanoAODSchema,metadata={"dataset": "testSignal"},entry_stop=eventsToRead).events()
-
+    try:
+        events = NanoEventsFactory.from_root(fname,schemaclass=NanoAODSchema,metadata={"dataset": "testSignal"},entry_stop=eventsToRead).events()
+    except:
+        print("Getting events failed for file: {}".format(fname))
+        return [], 0, 0
+    
     fatjets = events.FatJet
     
     #Fatjet cuts
     ptcut = 250
     etacut = 2.5
     mass_cut = [100,150]
-    pNet_cut = 0.9105
+    pNet_cut = 0.0
 
     good_fatjets = fatjets[(fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut) & (fatjets.msoftdrop>=mass_cut[0]) & (fatjets.msoftdrop<=mass_cut[1])]
     pre_boosted_fatjets = good_fatjets[ak.num(good_fatjets, axis=1)> 2]
@@ -38,7 +42,7 @@ def boosted(fname,oFile,processLabel="signal",eventsToRead=None):
     btag_boosted_fatjets = btag_boosted[ak.num(btag_boosted, axis=1)> 2]
     btag_boosted_events = pre_boosted_events[ak.num(btag_boosted, axis=1)> 2]
 
-    return btag_boosted_fatjets
+    return btag_boosted_fatjets, len(events), len(btag_boosted_events)
 
 def semiboosted(fname,oFile,processLabel="signal",eventsToRead=None):
     events = NanoEventsFactory.from_root(fname,schemaclass=NanoAODSchema,metadata={"dataset": "testSignal"},entry_stop=eventsToRead).events()
