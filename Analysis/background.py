@@ -22,7 +22,7 @@ def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None):
     print(trijet_mass)
     #calc inv mass of trijets by lorentz v. sum of three leading jets
 
-    j3_bin = hist.axis.Regular(label="Trijet Mass [GeV]", name="trijet_mass", bins=40, start=0, stop=6000)
+    j3_bin = hist.axis.Regular(label="Trijet Mass [GeV]", name="trijet_mass", bins=60, start=0, stop=6000)
     # j3_cat = hist.axis.StrCategory(label='Trijets', name='trijet', categories=[processLabel])
 
     j3_hist = Hist(j3_bin)
