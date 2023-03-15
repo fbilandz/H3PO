@@ -1,0 +1,38 @@
+{
+"2016":{
+ "QCD1000": {"xsec": 1127},
+ "QCD1500": {"xsec": 110},
+ "QCD2000": {"xsec": 21.98},
+ "QCD700": {"xsec": 6440},
+ "TTbarHadronic": {"xsec": 377.96},
+ "TTbarSemileptonic": {"xsec": 365.34},
+ "lumi":16800
+ },
+"2016APV":{
+ "QCD1000": {"xsec": 1127},
+ "QCD1500": {"xsec": 110},
+ "QCD2000": {"xsec": 21.98},
+ "QCD700": {"xsec": 6440},
+ "TTbarHadronic": {"xsec": 377.96},
+ "TTbarSemileptonic": {"xsec": 365.34},
+ "lumi":19500
+ },
+"2017":{
+ "QCD1000": {"xsec": 1127},
+ "QCD1500": {"xsec": 110},
+ "QCD2000": {"xsec": 21.98},
+ "QCD700": {"xsec": 6440},
+ "TTbarHadronic": {"xsec": 377.96},
+ "TTbarSemileptonic": {"xsec": 365.34},
+ "lumi":41500
+},
+ "2018":{
+ "QCD1000": {"xsec": 1127},
+ "QCD1500": {"xsec": 110},
+ "QCD2000": {"xsec": 21.98},
+ "QCD700": {"xsec": 6440},
+ "TTbarHadronic": {"xsec": 377.96},
+ "TTbarSemileptonic": {"xsec": 365.34},
+ "lumi":59800
+ }
+}
