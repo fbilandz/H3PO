@@ -56,8 +56,8 @@ def mergeSamples(inFiles,outFile,regexMatch,regexReplace):
     f.Close()
     print("\n")
 
-def lumiNormalization(wp="tight",tagger="ParticleNet"):
-
+def lumi_normalization(wp="tight",tagger="ParticleNet", n_of_tagged_jets=0):
+    print("N of tagged jets: ", n_of_tagged_jets)
     processes = ["QCD700","QCD1000","QCD1500","QCD2000","TTbarHadronic","TTbarSemileptonic"]
     for year in ['2017']:
         print(year, os.getcwd())
@@ -65,25 +65,26 @@ def lumiNormalization(wp="tight",tagger="ParticleNet"):
         lumiScaledDir = os.getcwd() +  "/background/scaled"
         print(nonScaledDir)
         for proc in processes:
-            nonScaledFile = "{0}/{1}.root".format(nonScaledDir,proc)
+            nonScaledFile = "{0}/{1}_{2}b-tagged_jets.root".format(nonScaledDir,proc, n_of_tagged_jets)
             if(os.path.isfile(nonScaledFile)):
                 try:                 
-                    normalizeProcess(proc,year,"{0}/{1}_atleast_2b-tagged.root".format(nonScaledDir,proc),"{0}/{1}.root".format(lumiScaledDir,proc))
+                    normalizeProcess(proc,year,"{0}/{1}_{2}b-tagged_jets.root".format(nonScaledDir,proc, n_of_tagged_jets),"{0}/{1}_{2}b-tagged_jets.root".format(lumiScaledDir,proc, n_of_tagged_jets))
                 except:
                     print("Couldn't normalize {0}".format(proc))
             else:
                 print("{0} does not exist, skipping!".format(nonScaledFile))
         
-        QCDsamples = ["QCD700.root","QCD1000.root","QCD1500.root","QCD2000.root"]
-        QCDsamples = [os.path.join(lumiScaledDir, f) for f in QCDsamples if (os.path.isfile(os.path.join(lumiScaledDir, f)))]
-        mergeSamples(QCDsamples,"{0}/QCD{1}_atleast_2b-tagged.root".format(lumiScaledDir,year[2:]),"QCD\d+_","QCD_")
+        QCDsamples = ["QCD700","QCD1000","QCD1500","QCD2000"]
+        QCDsamples = [os.path.join(lumiScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets)) for f in QCDsamples if (os.path.isfile(os.path.join(lumiScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets))))]
+        mergeSamples(QCDsamples,"{0}/QCD{1}_{2}_b-tag.root".format(lumiScaledDir,year[2:], n_of_tagged_jets),"QCD\d+_","QCD_")
 
-        ttSamples = ["TTbarHadronic.root","TTbarSemileptonic.root"]
-        ttSamples = [os.path.join(lumiScaledDir, f) for f in ttSamples if (os.path.isfile(os.path.join(lumiScaledDir, f)))]
-        mergeSamples(ttSamples,"{0}/TTbar{1}_atleast_2b-tagged.root".format(lumiScaledDir,year[2:]),"TTbarSemileptonic|TTbarHadronic","TTbar")
+        ttSamples = ["TTbarHadronic","TTbarSemileptonic"]
+        ttSamples = [os.path.join(lumiScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets)) for f in ttSamples if (os.path.isfile(os.path.join(lumiScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets))))]
+        mergeSamples(ttSamples,"{0}/TTbar{1}_{2}_b-tag.root".format(lumiScaledDir,year[2:], n_of_tagged_jets),"TTbarSemileptonic|TTbarHadronic","TTbar")
 
-        # JetHTSamples = [nonScaledDir+f for f in os.listdir(nonScaledDir) if (os.path.isfile(os.path.join(nonScaledDir, f)) and "JetHT" in f)]
-        # mergeSamples(JetHTSamples,"{0}/JetHT{1}.root".format(lumiScaledDir,year[2:]),"JetHT201[0-9][a-zA-Z]+_","data_obs_")
+        JetHTSamples = ["JetHT2017B", "JetHT2017C", "JetHT2017D", "JetHT2017E", "JetHT2017F"]
+        JetHTSamples = [os.path.join(nonScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets)) for f in JetHTSamples if (os.path.isfile(os.path.join(nonScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets))))]
+        mergeSamples(JetHTSamples,"{0}/JetHT{1}_{2}_b-tag.root".format(lumiScaledDir,year[2:], n_of_tagged_jets),"JetHT201[0-9][a-zA-Z]+_","data_obs_")
 
 
 if __name__ == '__main__':
@@ -95,4 +96,4 @@ if __name__ == '__main__':
     # lumiNormalization(wp="tight",tagger="DeepDoubleX")
     # lumiNormalization(wp="tight",tagger="DeepAK8")
     # lumiNormalization(wp="tight",tagger="Hbb")    
-    lumiNormalization(wp="loose",tagger="/")
+    lumi_normalization(wp="loose",tagger="/")
