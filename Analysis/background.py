@@ -14,19 +14,29 @@ import mplhep as hep
 from Selection import *
 
 
-def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None):
+def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None, n_of_tagged_jet=0):
+    n_of_tagged_jet = int(n_of_tagged_jet)
+    good_boosted, total_events, control_good_boosted, control_total_selected_events, control_alternative_good_boosted, control_alternative_total_selected_events = boosted(fname,oFile,processLabel="JetHT_BACKGROUND",eventsToRead=None, n_of_tagged_jets=n_of_tagged_jet)
 
-    good_boosted, total_events, total_selected_events = boosted(fname,oFile,processLabel="JetHT_BACKGROUND",eventsToRead=None)
-
-    trijet_mass = (good_boosted[:,0]+good_boosted[:,1]+good_boosted[:,2]).mass
-    print(trijet_mass)
+    trijet_mass_signal = (good_boosted[:,0]+good_boosted[:,1]+good_boosted[:,2]).mass
+    j1_mass = good_boosted[:,0].msoftdrop
+    j2_mass = good_boosted[:,1].msoftdrop
+    j3_mass = good_boosted[:,2].msoftdrop
+    
+    j1_mass_control = control_good_boosted[:,0].msoftdrop
+    j2_mass_control = control_good_boosted[:,1].msoftdrop
+    j3_mass_control = control_good_boosted[:,2].msoftdrop
+    
+    j1_mass_control_alternative = control_alternative_good_boosted[:,0].msoftdrop
+    j2_mass_control_alternative = control_alternative_good_boosted[:,1].msoftdrop
+    j3_mass_control_alternative = control_alternative_good_boosted[:,2].msoftdrop
     #calc inv mass of trijets by lorentz v. sum of three leading jets
 
     j3_bin = hist.axis.Regular(label="Trijet Mass [GeV]", name="trijet_mass", bins=60, start=0, stop=6000)
     # j3_cat = hist.axis.StrCategory(label='Trijets', name='trijet', categories=[processLabel])
 
     j3_hist = Hist(j3_bin)
-    j3_hist.fill(trijet_mass=trijet_mass)
+    j3_hist.fill(trijet_mass=trijet_mass_signal)
 
     # plt.style.use([hep.style.CMS])
     # j3_hist.plot(color="black")
@@ -40,13 +50,13 @@ def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None):
     #-----MJJ calc and plotting-----#
 
 
-    dijet1_mass = (good_boosted[:,0]+good_boosted[:,1]).mass
+    dijet1_mass_signal = (good_boosted[:,0]+good_boosted[:,1]).mass
     #calc inv mass of first dijet combination
 
-    dijet2_mass = (good_boosted[:,0]+good_boosted[:,2]).mass
+    dijet2_mass_signal = (good_boosted[:,0]+good_boosted[:,2]).mass
     #calc inv mass of second dijet combination
 
-    dijet3_mass = (good_boosted[:,1]+good_boosted[:,2]).mass
+    dijet3_mass_signal = (good_boosted[:,1]+good_boosted[:,2]).mass
     #calc inv mass of third dijet combination
 
 
@@ -55,26 +65,30 @@ def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None):
 
     j2_hist = Hist(j2_bin, j2_cat)
 
-    j2_hist.fill(dijet="12 Pair", dijet_mass=dijet1_mass)
-    j2_hist.fill(dijet="13 Pair", dijet_mass=dijet2_mass)
-    j2_hist.fill(dijet="23 Pair", dijet_mass=dijet3_mass)
+    j2_hist.fill(dijet="12 Pair", dijet_mass=dijet1_mass_signal)
+    j2_hist.fill(dijet="13 Pair", dijet_mass=dijet2_mass_signal)
+    j2_hist.fill(dijet="23 Pair", dijet_mass=dijet3_mass_signal)
 
     mjj12_vs_mjjj = Hist(j3_bin,j2_bin)
-    mjj12_vs_mjjj.fill(dijet_mass=dijet1_mass,trijet_mass=trijet_mass)
+    mjj12_vs_mjjj.fill(dijet_mass=dijet1_mass_signal,trijet_mass=trijet_mass_signal)
     mjj13_vs_mjjj = Hist(j3_bin,j2_bin)
-    mjj13_vs_mjjj.fill(dijet_mass=dijet2_mass,trijet_mass=trijet_mass)
+    mjj13_vs_mjjj.fill(dijet_mass=dijet2_mass_signal,trijet_mass=trijet_mass_signal)
     mjj23_vs_mjjj = Hist(j3_bin,j2_bin)
-    mjj23_vs_mjjj.fill(dijet_mass=dijet3_mass,trijet_mass=trijet_mass)
+    mjj23_vs_mjjj.fill(dijet_mass=dijet3_mass_signal,trijet_mass=trijet_mass_signal)
     
-    mjjall_vs_mjjj = Hist(j3_bin, j2_bin)
-    mjjall_vs_mjjj.fill(dijet_mass=dijet1_mass,trijet_mass=trijet_mass)
-    mjjall_vs_mjjj.fill(dijet_mass=dijet2_mass,trijet_mass=trijet_mass)
-    mjjall_vs_mjjj.fill(dijet_mass=dijet3_mass,trijet_mass=trijet_mass)
+    mjjall_vs_mjjj_signal = Hist(j3_bin, j2_bin)
+    mjjall_vs_mjjj_signal.fill(dijet_mass=dijet1_mass_signal,trijet_mass=trijet_mass_signal)
+    mjjall_vs_mjjj_signal.fill(dijet_mass=dijet2_mass_signal,trijet_mass=trijet_mass_signal)
+    mjjall_vs_mjjj_signal.fill(dijet_mass=dijet3_mass_signal,trijet_mass=trijet_mass_signal)
     
-    events_cat  = hist.axis.Integer(0, 2, underflow=False, overflow=False)
+    events_cat  = hist.axis.Integer(0, 6, underflow=False, overflow=False)
     events_total = Hist(events_cat)
-    events_total[0] = total_events
-    events_total[1] = total_selected_events
+    events_total[0] = total_events[0]
+    events_total[1] = total_events[1]
+    events_total[2] = total_events[2]
+    events_total[3] = total_events[3]
+    events_total[4] = control_total_selected_events
+    events_total[5] = control_alternative_total_selected_events
 
     # j2_hist.plot(stack=True, histtype='fill', ec="black", fc=["violet","skyblue","khaki"])
     # hep.cms.text("Work in progress", loc=0)
@@ -89,11 +103,74 @@ def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None):
     j1_pNet = Hist(pNet_bin)
     j2_pNet = Hist(pNet_bin)
     j3_pNet = Hist(pNet_bin)
-    j1_pNet.fill(pnet=HbbvsQCD(good_boosted[:,0]))
-    j2_pNet.fill(pnet=HbbvsQCD(good_boosted[:,1]))
-    j3_pNet.fill(pnet=HbbvsQCD(good_boosted[:,2]))
     
-    return events_total, j3_hist, j2_hist, mjj12_vs_mjjj, mjj13_vs_mjjj, mjj23_vs_mjjj, mjjall_vs_mjjj, j1_pNet, j2_pNet, j3_pNet
+    pnet_argscores = ak.argsort(HbbvsQCD(good_boosted), ascending=False)
+    good_boosted_resorted = good_boosted[pnet_argscores]
+    pnet_scores = HbbvsQCD(good_boosted_resorted)
+    j1_pNet.fill(pnet=pnet_scores[:,0])
+    j2_pNet.fill(pnet=pnet_scores[:,1])
+    j3_pNet.fill(pnet=pnet_scores[:,2])
+    
+    j1_mass = good_boosted_resorted[:,0].msoftdrop
+    j2_mass = good_boosted_resorted[:,1].msoftdrop
+    j3_mass = good_boosted_resorted[:,2].msoftdrop
+    
+    trijet_mass_control = (control_good_boosted[:,0]+control_good_boosted[:,1]+control_good_boosted[:,2]).mass
+    #calc inv mass of trijets by lorentz v. sum of three leading jets
+    
+    dijet1_mass_control = (control_good_boosted[:,0]+control_good_boosted[:,1]).mass
+    #calc inv mass of first dijet combination
+
+    dijet2_mass_control = (control_good_boosted[:,0]+control_good_boosted[:,2]).mass
+    #calc inv mass of second dijet combination
+
+    dijet3_mass_control = (control_good_boosted[:,1]+control_good_boosted[:,2]).mass
+    #calc inv mass of third dijet combination
+    
+    mjjall_vs_mjjj_control = Hist(j3_bin, j2_bin)
+    mjjall_vs_mjjj_control.fill(dijet_mass=dijet1_mass_control,trijet_mass=trijet_mass_control)
+    mjjall_vs_mjjj_control.fill(dijet_mass=dijet2_mass_control,trijet_mass=trijet_mass_control)
+    mjjall_vs_mjjj_control.fill(dijet_mass=dijet3_mass_control,trijet_mass=trijet_mass_control)
+    
+    j_mass_hist_x = hist.axis.Regular(label="Mass [GeV]", name="mass", bins=40, start=0, stop=1000)
+    j1_mass_hist = Hist(j_mass_hist_x)
+    j2_mass_hist = Hist(j_mass_hist_x)
+    j3_mass_hist = Hist(j_mass_hist_x)
+    j1_mass_hist.fill(mass=j1_mass)
+    j2_mass_hist.fill(mass=j2_mass)
+    j3_mass_hist.fill(mass=j3_mass)
+    
+    j1_mass_hist_control = Hist(j_mass_hist_x)
+    j2_mass_hist_control = Hist(j_mass_hist_x)
+    j3_mass_hist_control = Hist(j_mass_hist_x)
+    j1_mass_hist_control.fill(mass=j1_mass_control)
+    j2_mass_hist_control.fill(mass=j2_mass_control)
+    j3_mass_hist_control.fill(mass=j3_mass_control)
+    
+    trijet_mass_control_alternative = (control_alternative_good_boosted[:,0]+control_alternative_good_boosted[:,1]+control_alternative_good_boosted[:,2]).mass
+    #calc inv mass of trijets by lorentz v. sum of three leading jets
+    
+    dijet1_mass_control_alternative = (control_alternative_good_boosted[:,0]+control_alternative_good_boosted[:,1]).mass
+    #calc inv mass of first dijet combination
+
+    dijet2_mass_control_alternative = (control_alternative_good_boosted[:,0]+control_alternative_good_boosted[:,2]).mass
+    #calc inv mass of second dijet combination
+
+    dijet3_mass_control_alternative = (control_alternative_good_boosted[:,1]+control_alternative_good_boosted[:,2]).mass
+    
+    mjjall_vs_mjjj_control_alternative = Hist(j3_bin, j2_bin)
+    mjjall_vs_mjjj_control_alternative.fill(dijet_mass=dijet1_mass_control_alternative,trijet_mass=trijet_mass_control_alternative)
+    mjjall_vs_mjjj_control_alternative.fill(dijet_mass=dijet2_mass_control_alternative,trijet_mass=trijet_mass_control_alternative)
+    mjjall_vs_mjjj_control_alternative.fill(dijet_mass=dijet3_mass_control_alternative,trijet_mass=trijet_mass_control_alternative)
+    
+    j1_mass_hist_control_alternative = Hist(j_mass_hist_x)
+    j2_mass_hist_control_alternative = Hist(j_mass_hist_x)
+    j3_mass_hist_control_alternative = Hist(j_mass_hist_x)
+    j1_mass_hist_control_alternative.fill(mass=j1_mass_control_alternative)
+    j2_mass_hist_control_alternative.fill(mass=j2_mass_control_alternative)
+    j3_mass_hist_control_alternative.fill(mass=j3_mass_control_alternative)
+    
+    return events_total, j3_hist, j2_hist, mjj12_vs_mjjj, mjj13_vs_mjjj, mjj23_vs_mjjj, mjjall_vs_mjjj_signal, mjjall_vs_mjjj_control, mjjall_vs_mjjj_control_alternative, j1_pNet, j2_pNet, j3_pNet, j1_mass_hist, j2_mass_hist, j3_mass_hist, j1_mass_hist_control, j2_mass_hist_control, j3_mass_hist_control, j1_mass_hist_control_alternative, j2_mass_hist_control_alternative, j3_mass_hist_control_alternative
 
 
 #fname   = "/eos/user/b/bchitrod/HHH/NANOAOD/TRSM_XToHY_6b_M3_2000_M2_1100_NANOAOD.root" #(on lxplus)
@@ -102,8 +179,8 @@ def plotMassDist(fname,oFile,processLabel="signal",eventsToRead=None):
 from os import listdir
 from os.path import isfile, join
 
-def create_root_files(year="2017", sample="QCD2000", file="", file_path=""):
-    events_total, j3_hist, j2_hist, mjj12_vs_mjjj, mjj13_vs_mjjj, mjj23_vs_mjjj, mjjall_vs_mjjj, j1_pNet, j2_pNet, j3_pNet = plotMassDist(file_path, "{0}-{1}".format(sample, file), processLabel=sample, eventsToRead=None)
+def create_root_files(year="2017", sample="QCD2000", file="", file_path="", n_of_tagged_jets=0):
+    events_total, j3_hist, j2_hist, mjj12_vs_mjjj, mjj13_vs_mjjj, mjj23_vs_mjjj, mjjall_vs_mjjj_signal, mjjall_vs_mjjj_control, mjjall_vs_mjjj_control_alternative, j1_pNet, j2_pNet, j3_pNet, j1_mass_hist, j2_mass_hist, j3_mass_hist, j1_mass_hist_control, j2_mass_hist_control, j3_mass_hist_control, j1_mass_hist_control_alternative, j2_mass_hist_control_alternative, j3_mass_hist_control_alternative = plotMassDist(file_path, "{0}-{1}".format(sample, file), processLabel=sample, eventsToRead=None, n_of_tagged_jet=n_of_tagged_jets)
     
     with uproot.recreate("{0}-{1}.root".format(sample, file)) as fout:
         fout[f"events_total"] = events_total
@@ -112,11 +189,22 @@ def create_root_files(year="2017", sample="QCD2000", file="", file_path=""):
         fout[f"mjj12_vs_mjjj"] = mjj12_vs_mjjj
         fout[f"mjj13_vs_mjjj"] = mjj13_vs_mjjj
         fout[f"mjj23_vs_mjjj"] = mjj23_vs_mjjj
-        fout[f"mjjall_vs_mjjj"] = mjjall_vs_mjjj
+        fout[f"mjjall_vs_mjjj_signal"] = mjjall_vs_mjjj_signal
+        fout[f"mjjall_vs_mjjj_control"] = mjjall_vs_mjjj_control
+        fout[f"mjjall_vs_mjjj_control_alternative"] = mjjall_vs_mjjj_control_alternative
         fout[f"j1_pNet"] = j1_pNet
         fout[f"j2_pNet"] = j2_pNet
         fout[f"j3_pNet"] = j3_pNet
-
+        fout[f"j1_mass_signal"] = j1_mass_hist
+        fout[f"j2_mass_signal"] = j2_mass_hist
+        fout[f"j3_mass_signal"] = j3_mass_hist
+        fout[f"j1_mass_control"] = j1_mass_hist_control
+        fout[f"j2_mass_control"] = j2_mass_hist_control
+        fout[f"j3_mass_control"] = j3_mass_hist_control      
+        fout[f"j1_mass_control_alternative"] = j1_mass_hist_control_alternative
+        fout[f"j2_mass_control_alternative"] = j2_mass_hist_control_alternative
+        fout[f"j3_mass_control_alternative"] = j3_mass_hist_control_alternative
+        
 if __name__ == "__main__":
     from argparse import ArgumentParser
     parser = ArgumentParser(description="Do -h to see usage")
@@ -126,5 +214,6 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--sample', help='Sample name', default="QCD2000")
     parser.add_argument('-f', '--file', help='File name')
     parser.add_argument('-fp', '--file_path', help='File path')
+    parser.add_argument('-nt', '--n_of_tagged_jets', help='Number of b-tagged jets', default=0)
     args = parser.parse_args()
-    create_root_files(year=args.year, sample=args.sample, file=args.file, file_path=args.file_path)
+    create_root_files(year=args.year, sample=args.sample, file=args.file, file_path=args.file_path, n_of_tagged_jets=args.n_of_tagged_jets)
