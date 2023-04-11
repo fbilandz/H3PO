@@ -58,7 +58,7 @@ def mergeSamples(inFiles,outFile,regexMatch,regexReplace):
 
 def lumiNormalization(wp="tight",tagger="ParticleNet"):
 
-    processes = ["XToHY_6b_2000_1100_atleast_2b-tagged"]
+    processes = ["XToHY_6b_2000_1100_0_b-tag", "XToHY_6b_2000_1100_1_b-tag", "XToHY_6b_2000_1100_2_b-tag"]
     for year in ['2017']:
         nonScaledDir = "signal/nonScaled"
         lumiScaledDir = "signal/scaled"

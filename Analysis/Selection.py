@@ -20,27 +20,27 @@ def HbbvsQCD(fatjet):
     score = (fatjet.particleNetMD_Xbb/(fatjet.particleNetMD_Xbb+fatjet.particleNetMD_QCD))
     return score
 
-def applyPNetCut(pre_boosted_events, pre_boosted_fatjets, pNet_cut, n_of_tagged_jets=0):
+def applyPNetCut(pre_boosted_fatjets, pNet_cut, n_of_tagged_jets=0):
+    # atleast_n_btag_boosted_events = pre_boosted_events[ak.sum(HbbvsQCD(pre_boosted_fatjets)>=pNet_cut, axis=1) >= n_of_tagged_jets]
+    btag_boosted = pre_boosted_fatjets[ak.sum(HbbvsQCD(pre_boosted_fatjets)>=pNet_cut, axis=1) >= n_of_tagged_jets]
     
-    atleast_n_btag_boosted_events = pre_boosted_events[ak.sum(HbbvsQCD(pre_boosted_fatjets)>=pNet_cut, axis=1) >= n_of_tagged_jets]
-
-    btag_boosted = atleast_n_btag_boosted_events.FatJet
     btag_boosted_fatjets = btag_boosted[ak.num(btag_boosted, axis=1)> 2]
-    btag_boosted_events = pre_boosted_events[ak.num(btag_boosted, axis=1)> 2]
-    return btag_boosted_events, btag_boosted_fatjets
+
+    # btag_boosted_events = pre_boosted_events[ak.num(btag_boosted, axis=1)> 2]
+    return btag_boosted_fatjets
 
 def applyKinematicCut(fatjets, ptcut = 250, etacut = 2.5, masscut = [100, 150]):
     return fatjets[(fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut) & (fatjets.msoftdrop>=masscut[0]) & (fatjets.msoftdrop<=masscut[1])]
 
 def applyKinematicCutControl(fatjets, ptcut = 250, etacut = 2.5, masscut = [100, 150]):
-    kincuts = (fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut)  
+    kincuts = (fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut)
     masscuts = (fatjets.msoftdrop>=masscut[0]) & (fatjets.msoftdrop<=masscut[1])
     # Invert request for leading jet
     for i in range(len(masscuts)):
         if len(masscuts[i]) == 0:
             continue
         # Discard event if leading jet has a mass matching Higgs
-        if masscuts[i][0] == True:
+        if masscuts[i][0] == True or fatjets[i][0].msoftdrop < 50:
             for j in range(len(masscuts[i])):
                 np.asarray(masscuts[i])[j] = False
         # Accept leading jet
@@ -49,32 +49,34 @@ def applyKinematicCutControl(fatjets, ptcut = 250, etacut = 2.5, masscut = [100,
     return fatjets[kincuts & masscuts]
 
 def applyKinematicCutControlAlternative(fatjets, ptcut = 250, etacut = 2.5, masscut = [100, 150]):
-    kincuts = (fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut)  
+    kincuts = (fatjets.pt>ptcut) & (np.absolute(fatjets.eta)<etacut) & (fatjets.msoftdrop >= 50)
     masscuts = (fatjets.msoftdrop>=masscut[0]) & (fatjets.msoftdrop<=masscut[1])
     # Invert request for leading jet
     for i in range(len(masscuts)):
         if len(masscuts[i]) < 2:
             continue
         # Discard event if two leading jets have a mass matching Higgs
-        if masscuts[i][0] == True or masscuts[i][1] == True:
+        if masscuts[i][0] == True or fatjets[i][0].msoftdrop < 50 or masscuts[i][1] == True or fatjets[i][1].msoftdrop < 50:
             for j in range(len(masscuts[i])):
                 np.asarray(masscuts[i])[j] = False
         # Accept leading jet
         else:
             np.asarray(masscuts[i])[0] = True
+            np.asarray(masscuts[i])[1] = True
     return fatjets[kincuts & masscuts]
 
 def boosted(fname,oFile,processLabel="signal",eventsToRead=None, n_of_tagged_jets=0):	
-    froot = ROOT.TFile.Open(fname)
-    myTree = froot.Runs
-    for entry in myTree:
-        total_events = entry.genEventCount
     
     try:
         events = NanoEventsFactory.from_root(fname,schemaclass=NanoAODSchema,metadata={"dataset": "testSignal"},entry_stop=eventsToRead).events()
     except:
         print("Getting events failed for file: {}".format(fname))
-        return [], [total_events, 0, 0, 0], 0, [], 0, [], 0
+        return [], [0, 0, 0, 0], 0, [], 0, [], 0
+    
+    froot = ROOT.TFile.Open(fname)
+    myTree = froot.Runs
+    for entry in myTree:
+        total_events = entry.genEventCount
     
     print("total events: ", total_events)
     fatjets = events.FatJet
@@ -85,7 +87,7 @@ def boosted(fname,oFile,processLabel="signal",eventsToRead=None, n_of_tagged_jet
     pNet_cut = 0.9105
     
     total_skim_events = len(events)
-
+    
     good_fatjets = applyKinematicCut(fatjets, ptcut, etacut, mass_cut)
     pre_boosted_fatjets = good_fatjets[ak.num(good_fatjets, axis=1)> 2]
     pre_boosted_events = events[ak.num(good_fatjets, axis=1)> 2]
@@ -93,35 +95,68 @@ def boosted(fname,oFile,processLabel="signal",eventsToRead=None, n_of_tagged_jet
     total_events_kin = len(pre_boosted_events)
     
     control_good_fatjets = applyKinematicCutControl(fatjets, ptcut, etacut, mass_cut)
-    control_pre_boosted_fatjets = good_fatjets[ak.num(control_good_fatjets, axis=1)> 2]
+    control_pre_boosted_fatjets = control_good_fatjets[ak.num(control_good_fatjets, axis=1)> 2]
     control_pre_boosted_events = events[ak.num(control_good_fatjets, axis=1)> 2]
     
     control_alternative_good_fatjets = applyKinematicCutControlAlternative(fatjets, ptcut, etacut, mass_cut)
-    control_alternative_pre_boosted_fatjets = good_fatjets[ak.num(control_alternative_good_fatjets, axis=1)> 2]
+    control_alternative_pre_boosted_fatjets = control_alternative_good_fatjets[ak.num(control_alternative_good_fatjets, axis=1)> 2]
     control_alternative_pre_boosted_events = events[ak.num(control_alternative_good_fatjets, axis=1)> 2]
     #Btag cut applied at the end
     # atleast_one_btag_boosted_events = pre_boosted_events[ak.sum(HbbvsQCD(pre_boosted_fatjets)>=pNet_cut, axis=1) >= 2]
 
     # btag_boosted = atleast_one_btag_boosted_events.FatJet
     # btag_boosted_fatjets = btag_boosted[ak.num(btag_boosted, axis=1)> 2]
-    btag_boosted_events, btag_boosted_fatjets = applyPNetCut(pre_boosted_events, pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
+    btag_boosted_fatjets = applyPNetCut(pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
 
-    total_events_btag = len(btag_boosted_events)
+    total_events_btag = len(btag_boosted_fatjets)
+
+    control_btag_boosted_fatjets = applyPNetCut(control_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
     
-    control_btag_boosted_events, control_btag_boosted_fatjets = applyPNetCut(control_pre_boosted_events, control_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
-    
-    control_alternative_btag_boosted_events, control_alternative_btag_boosted_fatjets = applyPNetCut(control_alternative_pre_boosted_events, control_alternative_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
+    control_alternative_btag_boosted_fatjets = applyPNetCut(control_alternative_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
     
     events_total = [total_events, total_skim_events, total_events_kin, total_events_btag]
     
-    return btag_boosted_fatjets, events_total, control_btag_boosted_fatjets, len(control_btag_boosted_events), control_alternative_btag_boosted_fatjets, len(control_alternative_btag_boosted_events)
+    return btag_boosted_fatjets, events_total, control_btag_boosted_fatjets, len(control_btag_boosted_fatjets), control_alternative_btag_boosted_fatjets, len(control_alternative_btag_boosted_fatjets)
 
 def data_boosted(fname,oFile,processLabel="signal",eventsToRead=None, n_of_tagged_jets=0):	
+    # try:
+    #     events = NanoEventsFactory.from_root(fname,schemaclass=NanoAODSchema,metadata={"dataset": "testSignal"},entry_stop=eventsToRead).events()
+    # except:
+    #     print("Getting events failed for file: {}".format(fname))
+    #     return [], [], []
+    
+    # fatjets = events.FatJet
+    # #Fatjet cuts
+    # ptcut = 250
+    # etacut = 2.5
+    # mass_cut = [100,150]
+    # pNet_cut = 0.9105
+
+    # good_fatjets = applyKinematicCut(fatjets, ptcut, etacut, mass_cut)
+    # pre_boosted_fatjets = good_fatjets[ak.num(good_fatjets, axis=1)> 2]
+    # pre_boosted_events = events[ak.num(good_fatjets, axis=1)> 2]
+    
+    # control_good_fatjets = applyKinematicCutControl(fatjets, ptcut, etacut, mass_cut)
+    # control_pre_boosted_fatjets = control_good_fatjets[ak.num(control_good_fatjets, axis=1)> 2]
+    # control_pre_boosted_events = events[ak.num(control_good_fatjets, axis=1)> 2]
+    
+    # control_alternative_good_fatjets = applyKinematicCutControlAlternative(fatjets, ptcut, etacut, mass_cut)
+    # control_alternative_pre_boosted_fatjets = control_alternative_good_fatjets[ak.num(control_alternative_good_fatjets, axis=1)> 2]
+    # control_alternative_pre_boosted_events = events[ak.num(control_alternative_good_fatjets, axis=1)> 2]
+
+    # btag_boosted_fatjets = applyPNetCut(pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
+
+    # control_btag_boosted_fatjets = applyPNetCut(control_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
+    
+    # control_alternative_btag_boosted_fatjets = applyPNetCut(control_alternative_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets) 
+    
+    # return btag_boosted_fatjets, control_btag_boosted_fatjets, control_alternative_btag_boosted_fatjets
+
     try:
         events = NanoEventsFactory.from_root(fname,schemaclass=NanoAODSchema,metadata={"dataset": "testSignal"},entry_stop=eventsToRead).events()
     except:
         print("Getting events failed for file: {}".format(fname))
-        return [], []
+        return [], [],  []
     
     fatjets = events.FatJet
     #Fatjet cuts
@@ -129,24 +164,34 @@ def data_boosted(fname,oFile,processLabel="signal",eventsToRead=None, n_of_tagge
     etacut = 2.5
     mass_cut = [100,150]
     pNet_cut = 0.9105
-
+    
+    # total_skim_events = len(events)
+    
     good_fatjets = applyKinematicCut(fatjets, ptcut, etacut, mass_cut)
     pre_boosted_fatjets = good_fatjets[ak.num(good_fatjets, axis=1)> 2]
     pre_boosted_events = events[ak.num(good_fatjets, axis=1)> 2]
     
+    # total_events_kin = len(pre_boosted_events)
+    
     control_good_fatjets = applyKinematicCutControl(fatjets, ptcut, etacut, mass_cut)
-    control_pre_boosted_fatjets = good_fatjets[ak.num(control_good_fatjets, axis=1)> 2]
+    control_pre_boosted_fatjets = control_good_fatjets[ak.num(control_good_fatjets, axis=1)> 2]
     control_pre_boosted_events = events[ak.num(control_good_fatjets, axis=1)> 2]
     
     control_alternative_good_fatjets = applyKinematicCutControlAlternative(fatjets, ptcut, etacut, mass_cut)
-    control_alternative_pre_boosted_fatjets = good_fatjets[ak.num(control_alternative_good_fatjets, axis=1)> 2]
+    control_alternative_pre_boosted_fatjets = control_alternative_good_fatjets[ak.num(control_alternative_good_fatjets, axis=1)> 2]
     control_alternative_pre_boosted_events = events[ak.num(control_alternative_good_fatjets, axis=1)> 2]
+    #Btag cut applied at the end
+    # atleast_one_btag_boosted_events = pre_boosted_events[ak.sum(HbbvsQCD(pre_boosted_fatjets)>=pNet_cut, axis=1) >= 2]
 
-    btag_boosted_events, btag_boosted_fatjets = applyPNetCut(pre_boosted_events, pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
+    # btag_boosted = atleast_one_btag_boosted_events.FatJet
+    # btag_boosted_fatjets = btag_boosted[ak.num(btag_boosted, axis=1)> 2]
+    btag_boosted_fatjets = applyPNetCut(pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
 
-    control_btag_boosted_events, control_btag_boosted_fatjets = applyPNetCut(control_pre_boosted_events, control_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
+    control_btag_boosted_fatjets = applyPNetCut(control_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
     
-    control_alternative_btag_boosted_events, control_alternative_btag_boosted_fatjets = applyPNetCut(control_alternative_pre_boosted_events, control_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets) 
+    control_alternative_btag_boosted_fatjets = applyPNetCut(control_alternative_pre_boosted_fatjets, pNet_cut, n_of_tagged_jets)
+    
+    # events_total = [total_events, total_skim_events, total_events_kin, total_events_btag]
     
     return btag_boosted_fatjets, control_btag_boosted_fatjets, control_alternative_btag_boosted_fatjets
 

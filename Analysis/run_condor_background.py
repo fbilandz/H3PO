@@ -3,7 +3,7 @@ from normalize import lumi_normalization
 from rebin_histograms import rebin_histograms
 
 if __name__ == '__main__':
-    datasets = ["QCD2000", "QCD1000", "QCD1500", "QCD700", "TTbarHadronic", "TTbarSemileptonic",
+    datasets = ["QCD500", "QCD700", "QCD2000", "QCD1000", "QCD1500", "TTbarHadronic", "TTbarSemileptonic",
                 "JetHT2017B", "JetHT2017C", "JetHT2017D", "JetHT2017E", "JetHT2017F"]
 
     # for file in dataset:
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     from os.path import join, isfile
     from combine_histograms import combine_histograms
     
-    for n_of_tagged_jets in [0]:
+    for n_of_tagged_jets in [1]:
         num_of_jobs = {}
         
         for dataset in datasets:

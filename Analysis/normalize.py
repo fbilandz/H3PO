@@ -56,9 +56,9 @@ def mergeSamples(inFiles,outFile,regexMatch,regexReplace):
     f.Close()
     print("\n")
 
-def lumi_normalization(wp="tight",tagger="ParticleNet", n_of_tagged_jets=0):
+def lumi_normalization(wp="tight",tagger="ParticleNet", n_of_tagged_jets=1):
     print("N of tagged jets: ", n_of_tagged_jets)
-    processes = ["QCD700","QCD1000","QCD1500","QCD2000","TTbarHadronic","TTbarSemileptonic"]
+    processes = ["QCD500", "QCD700","QCD1000","QCD1500","QCD2000","TTbarHadronic","TTbarSemileptonic"]
     for year in ['2017']:
         print(year, os.getcwd())
         nonScaledDir = os.getcwd() +  "/background/nonScaled"
@@ -74,7 +74,7 @@ def lumi_normalization(wp="tight",tagger="ParticleNet", n_of_tagged_jets=0):
             else:
                 print("{0} does not exist, skipping!".format(nonScaledFile))
         
-        QCDsamples = ["QCD700","QCD1000","QCD1500","QCD2000"]
+        QCDsamples = ["QCD500", "QCD700","QCD1000","QCD1500","QCD2000"]
         QCDsamples = [os.path.join(lumiScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets)) for f in QCDsamples if (os.path.isfile(os.path.join(lumiScaledDir, f + "_{0}b-tagged_jets.root".format(n_of_tagged_jets))))]
         mergeSamples(QCDsamples,"{0}/QCD{1}_{2}_b-tag.root".format(lumiScaledDir,year[2:], n_of_tagged_jets),"QCD\d+_","QCD_")
 
