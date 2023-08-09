@@ -1,10 +1,10 @@
 from condor.paths import *
-from normalize import lumi_normalization
+from normalize_sane import lumi_normalization
 from rebin_histograms import rebin_histograms
 
 if __name__ == '__main__':
     datasets = ["QCD500", "QCD700", "QCD2000", "QCD1000", "QCD1500", "TTbarHadronic", "TTbarSemileptonic",
-                "JetHT2017C", "JetHT2017D", "JetHT2017E", "JetHT2017B", "JetHT2017F"]
+                "JetHT2017B", "JetHT2017C", "JetHT2017D", "JetHT2017E", "JetHT2017F"]
 
     # for file in dataset:
     #     f_test2 = ROOT.TFile(file)
@@ -13,7 +13,7 @@ if __name__ == '__main__':
     from os.path import join, isfile
     from combine_histograms import combine_histograms
     
-    for n_of_tagged_jets in [0]:
+    for n_of_tagged_jets in [1]:
         num_of_jobs = {}
         
         for dataset in datasets:
@@ -29,9 +29,9 @@ if __name__ == '__main__':
                     
             with open('job_desc' + dataset + '.txt', 'w') as job_file:
                 if "JetHT" in dataset:
-                    job_file.write('executable = run_data.sh\n')
+                    job_file.write('executable = run_data_sane.sh\n')
                 else: 
-                    job_file.write('executable = run.sh\n')
+                    job_file.write('executable = run_sane.sh\n')
                 job_file.write('universe    =  vanilla\n')
                 job_file.write('initialdir  =  /users/fbilandzija/H3PO/Analysis\n')
                 job_file.write('getenv = True\n')
@@ -47,10 +47,10 @@ if __name__ == '__main__':
         print("Waiting for all jobs to finish...")
         for dataset in datasets:
             system('condor_wait log' + dataset + '.log')
-            combine_histograms(dataset, "{0}b-tagged_jets".format(n_of_tagged_jets))
+            combine_histograms(dataset, "sane")
             
         print("All jobs finished.")
         print("Starting normalization...")
         lumi_normalization(n_of_tagged_jets=n_of_tagged_jets)
-        # rebin_histograms(n_of_tagged_jets=n_of_tagged_jets)
+        rebin_histograms(n_of_tagged_jets=n_of_tagged_jets)
 

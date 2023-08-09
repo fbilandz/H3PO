@@ -1,0 +1,133 @@
+import uproot
+import awkward as ak
+import matplotlib.pyplot as plt
+import hist
+from hist import Hist, Stack
+from coffea.nanoevents import NanoEventsFactory, BaseSchema
+import coffea.processor as processor
+from coffea.nanoevents import NanoEventsFactory, NanoAODSchema, schemas
+import numpy as np
+import mplhep as hep
+from Selection import *
+from os import listdir, getcwd, system
+from os.path import isfile, join
+
+def plot_hist(hist_to_plot, lumi_text, cms_text, xlabel, ylabel, fig_name):
+    plt.style.use([hep.style.CMS])
+    plt.tight_layout()
+    hist_to_plot.plot()
+    hep.cms.text(cms_text, loc=0)
+    # lumiText = "$41.5 fb^{-1} (13 TeV)$"    
+    hep.cms.lumitext(lumi_text)
+    plt.ylabel(ylabel, horizontalalignment='right', y=1.0)
+    plt.xlabel(xlabel)
+    plt.legend()
+    #plt.savefig("mjj_vs_mjjj_qcd_0_b-tag.png")
+    plt.savefig(fig_name)
+    plt.cla()
+    plt.clf()
+
+def plot_hists():
+    # 0 b-tag
+    for i in range(1):
+        with uproot.open("FittingArea/QCD17_{0}_b-tag.root".format(i)) as file:
+            qcd_events_total = file["events_total"].to_hist()
+            qcd_events_total.name = "QCD"
+            # qcd_control = file["j2_mass_control"].to_hist()
+            # qcd_control.name = "QCD"
+            # qcd_control_alternative = file["mjjall_vs_mjjj_control_alternative_rebinned"].to_hist()
+            # qcd_control_alternative.name = "QCD"
+            # qcd_signal.project("trijet_mass").plot()
+            
+            # j3_hist_unfolded = file["unwrapped_mjjall_vs_mjjj"].to_hist()
+            # plot_hist(j3_hist_unfolded, lumi_text, 
+            #         cms_text, "Event count", 
+            #         "Bin number", "mjj_vs_mjjj_qcd_unfolded.png")
+            
+        with uproot.open('FittingArea/XToHY_6b_2000_1100_{0}_b-tag.root'.format(i)) as file:
+            signal_events_total = file["events_total"].to_hist()
+            signal_events_total.name = "Signal"
+            
+            
+        with uproot.open('background/scaled/JetHT17_{0}_b-tag.root'.format(i)) as file:
+            data_hist_signal = file["total_events"].to_hist()
+            data_hist_signal.name = "Data"
+            # data_hist_control = file["j2_mass_control"].to_hist()
+            # data_hist_control.name = "Data"
+            # data_hist_control_alternative = file["mjjall_vs_mjjj_control_alternative_rebinned"].to_hist()
+            # data_hist_control_alternative.name = "Data"
+            
+        with uproot.open('FittingArea/TTbar17_{0}_b-tag.root'.format(i)) as file:
+            ttbar_events_total = file["events_total"].to_hist()
+            ttbar_events_total.name = "TTbar"
+            # ttbar_control = file["j2_mass_control"].to_hist()
+            # ttbar_control.name = "TTbar"
+            # ttbar_control_alternative = file["mjjall_vs_mjjj_control_alternative_rebinned"].to_hist()
+            # ttbar_control_alternative.name = "TTbar"
+            
+            plt.style.use([hep.style.CMS])
+            plt.tight_layout()
+            
+            hep.histplot(qcd_events_total, stack=True, histtype="fill", label="QCD")
+            hep.histplot(ttbar_events_total, stack=True, histtype="fill", label="TTbar")
+            #background_plot_y.plot(stack=True, histtype="fill")
+            hep.histplot(0.1 * signal_events_total, stack=False, label="Signal")
+            #data_hist_control.plot(histtype="errorbar", label="Data", color="black")
+            # hep.histplot(data_hist_control, histtype="errorbar", label="Data", color="black")
+            
+            hep.cms.text("Work in progress",loc=0)
+            lumiText = "$41.5 fb^{-1} (13 TeV)$"    
+            hep.cms.lumitext(lumiText)
+            plt.yscale('log')
+            plt.xticks(np.arange(9), ['Total', 'Skimmed', 'Kin cut', 'Mass cut',  'CR1 mass', 'CR2 mass',
+                                      'b-tag cut', 'CR1 b-tag',  'CR2 b-tag'], rotation=45)
+            plt.ylabel("Event count", horizontalalignment='right', y=1.0)
+            # plt.xlabel("Jet Mass [GeV]")
+            plt.legend()
+            plt.savefig("cutflow_{0}_b-tag.png".format(i))
+            plt.cla()
+            plt.clf()
+            
+            plt.style.use([hep.style.CMS])
+            plt.tight_layout()
+            
+            hep.histplot(qcd_events_total, stack=True, histtype="fill", label="QCD")
+            #background_plot_y.plot(stack=True, histtype="fill")
+            #data_hist_control.plot(histtype="errorbar", label="Data", color="black")
+            # hep.histplot(data_hist_control, histtype="errorbar", label="Data", color="black")
+            
+            hep.cms.text("Work in progress",loc=0)
+            lumiText = "$41.5 fb^{-1} (13 TeV)$"    
+            hep.cms.lumitext(lumiText)
+            plt.yscale('log')
+            plt.xticks(np.arange(9), ['Total', 'Skimmed', 'Kin cut', 'Mass cut',  'CR1 mass', 'CR2 mass',
+                                      'b-tag cut', 'CR1 b-tag',  'CR2 b-tag'], rotation=45)
+            plt.ylabel("Event count", horizontalalignment='right', y=1.0)
+            # plt.xlabel("Jet Mass [GeV]")
+            plt.legend()
+            plt.savefig("cutflow_{0}_b-tag_qcd.png".format(i))
+            plt.cla()
+            plt.clf()
+            
+            plt.style.use([hep.style.CMS])
+            plt.tight_layout()
+            hep.histplot(ttbar_events_total, stack=True, histtype="fill", label="TTbar")
+            #background_plot_y.plot(stack=True, histtype="fill")
+            #data_hist_control.plot(histtype="errorbar", label="Data", color="black")
+            # hep.histplot(data_hist_control, histtype="errorbar", label="Data", color="black")
+            
+            hep.cms.text("Work in progress",loc=0)
+            lumiText = "$41.5 fb^{-1} (13 TeV)$"    
+            hep.cms.lumitext(lumiText)
+            plt.yscale('log')
+            plt.xticks(np.arange(9), ['Total', 'Skimmed', 'Kin cut', 'Mass cut',  'CR1 mass', 'CR2 mass',
+                                      'b-tag cut', 'CR1 b-tag',  'CR2 b-tag'], rotation=45)
+            plt.ylabel("Event count", horizontalalignment='right', y=1.0)
+            # plt.xlabel("Jet Mass [GeV]")
+            plt.legend()
+            plt.savefig("cutflow_{0}_b-tag_ttbar.png".format(i))
+            plt.cla()
+            plt.clf()
+            
+if __name__ == '__main__':
+    plot_hists()

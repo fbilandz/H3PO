@@ -10,7 +10,7 @@ def normalizeProcess(process,year,inFile,outFile):
     print(process,inFile)
     json_file = open("xsecs.json")
     config = json.load(json_file)
-    xsec    = 1 # 1 pb
+    xsec    = 0.001 # 1 fb
     luminosity  = config[year]["lumi"]
     sumGenW     = f.Get("events_total").GetBinContent(1)
     nLumi       = xsec*luminosity
@@ -58,8 +58,8 @@ def mergeSamples(inFiles,outFile,regexMatch,regexReplace):
 
 def lumiNormalization(wp="tight",tagger="ParticleNet"):
 
-    processes = ["XToHY_6b_2000_1100_0_b-tag", "XToHY_6b_2000_1100_1_b-tag", "XToHY_6b_2000_1100_2_b-tag"]
-    for year in ['2017']:
+    processes = ["XToHY_6b_3500_2000_0_b-tag_16", "XToHY_6b_3500_2000_pass_16", "XToHY_6b_3500_2000_fail_16"]
+    for year in ['2016']:
         nonScaledDir = "signal/nonScaled"
         lumiScaledDir = "signal/scaled"
         for proc in processes:
